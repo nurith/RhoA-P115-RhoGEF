@@ -1,0 +1,220 @@
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   FILE: rhogvgtp_water_namd_prod_loop.cnfg                       #
+#   50 ns dynamics and production                                  #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   Set variable values                                            #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+set temp              310
+set dir               /home/nurit.haspel/RasCDC42/P115-rhogef-GTP-1
+set type              odo
+set nprev             800
+set nfile             850
+set nstep             400000000
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   Parameters                                                     #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+paraTypeCharmm        on
+parameters            /home/nurit.haspel/RasCDC42/par_all36_toppar20_hbj.inp
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   Input files                                                    #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+structure             ${dir}/psf/${type}_namd_salt_xplor.psf       ;# Name of structure file
+coordinates           ${dir}/coor/${type}_namd_prod_${nprev}_ns_pdb.coor   ;# Name of input pdb file
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   Restart files                                                  #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+# NOTE: Do not set the initial restart velocity if you have also specified a temperature!
+if {1} {
+#velocities            ${dir}/vel/                                 ;# Initial velocies in pdb file
+binVelocities      ${dir}/vel/${type}_namd_prod_${nprev}_ns.${nstep}.vel    ;# Initial velocies in binary format
+                                                                  ;# Remove the "temperature" entry if you use this!
+binCoordinates     ${dir}/coor/${type}_namd_prod_${nprev}_ns.${nstep}.coor  ;# Initial coor in binary format
+extendedSystem     ${dir}/xsc/${type}_namd_prod_${nprev}_ns.${nstep}.xsc    ;# Input periodic cell para read from
+}
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   Simulation temperature                                         #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+# NOTE: Do not set the initial velocity temperature if you have also specified a .vel restart file!
+#temperature           $temp
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   Output files                                                   #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+outputName            ${dir}/coor/${type}_namd_prod_${nfile}_ns_pdb         ;# Name of final output coor file
+binaryoutput          no                                          ;# Save final coor in binary format
+restartname           ${dir}/coor/${type}_namd_prod_${nfile}_ns             ;# Name of output(restart) coor & vel file
+binaryrestart         yes                                         ;# Save restart file in binary format
+restartfreq           5000000                                      ;# Freq saving coor & vel (1000 steps = every 1ps)
+restartsave           yes                                         ;# Append time step at end of file name
+dcdfile               ${dir}/trj/${type}_namd_prod_merged_${nfile}_ns.dcd   ;# Name of trajectory file
+dcdfreq               50000                                        ;# Freq saving trajectory
+dcdUnitCell           yes                                         ;# Write unit cell data to dcd file
+#veldcdfile            ${dir}/vel/${type}_namd_prod_${nfile}_ns_vel.dcd     ;# Name of vel trajectory file
+#veldcdfreq            1000                                        ;# Freq saving vel trajectory
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   Output configurations                                          #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+outputEnergies        50000                                        ;# Freq for printing Energies
+outputTiming          50000                                        ;# Freq for printing Timing info
+outputPressure        50000                                        ;# Freq for printing Pressure
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   Periodic Boundary conditions                                   #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+# NOTE: Do not set the periodic cell basis if you have specified an .xsc restart file!
+if {0} {
+cellBasisVector1       90.0  0.   0.
+cellBasisVector2        0.  90.0  0.
+cellBasisVector3        0.   0.  90.0
+cellOrigin              0.   0.   0.
+}
+xstFile               ${dir}/xsc/${type}_namd_prod_${nfile}_ns.xst          ;# Name of cell param trajectory file
+xstfreq               50000                                        ;# Freq for writing cell param trajectory
+wrapWater             on                                          ;# Wrap water around periodic boundary
+wrapAll               on                                          ;# Wrap all atoms around periodic boundary
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   Force-field parameters                                         #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+cutoff                12.                                         ;# Local interaction dist to elec & VdW calculation
+switching             on                                          ;# Smoothing func for cutoff, otherwise truncated
+switchdist            10.                                         ;# Should be less than or equal to cutoff value
+pairlistdist          14.                                         ;# Cutoff for generating pair list,larger than cutoff
+exclude               scaled1-4                                   ;# Exclude pairs in nonbonding interactions
+1-4scaling            1.0                                         ;# Scaling factor for 1-4 interaction
+COMmotion             no                                          ;# No center of mass motion for entire system
+splitPatch            hydrogen                                    ;# Set hydrogen to allow faster distance check
+hgroupCutoff          2.5                                         ;# Use for group-based distance testing
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   Time step parameters                                           #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+timestep              2.                                          ;# 2 fs/step
+firsttimestep         $nstep                                      ;# Starting time step value
+stepspercycle         20                                          ;# Freq updating nonbond list
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   Multiple time step parameters for long range elec              #  
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+fullElectFrequency    1                                           ;# Calc long range elec stat every time step
+nonbondedFreq         1                                           ;# Freq for calc short range nonbond interac
+MTSAlgorithm          impulse                                     ;# Integr method for long range elec
+longsplitting         c1                                          ;# Method for split elec forces between long and short
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   PME parameters                                                 #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+if {1} {
+PME                   yes                                         ;# Use particle mesh Ewald for electrostatics
+PMEGridSpacing        1.0                                         ;# NAMD assigns automatically the grid space
+#PMETolerance          1.0e-6                                      ;# Affect value of Ewald coefficient
+#PMEInterpOrder        4                                           ;# For cubic 4
+#PMEGridSizeX          92                                          ;# Number of grid ponts in x
+#PMEGridSizeY          92                                          ;# Number of grid ponts in y
+#PMEGridSizeZ          92                                          ;# Number of grid ponts in z
+}
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   Constant temperature control                                   #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+if {1} {
+langevin              on                                          ;# Use langeving dynam for temp control
+langevinTemp          $temp
+langevinDamping       2.5                                         ;# Friction coeff (gamma) (1/ps), use a small value
+langevinHydrogen      off                                         ;# Don't couple langevin bath to hydrogens
+}
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#  Temperature control for heating or cooling                      #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+if {0} {
+reassignFreq          50000                                       ;# Frequency to reassign temperature
+reassignTemp          10.0                                        ;# Initial temperature
+reassignIncr          30.0                                        ;# Temperature increment or decrement
+reassignHold          $temp                                       ;# Target temperature
+}
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   Constant pressure control                                      #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+useGroupPressure      yes                                         ;# Should use w/SHAKE, needed for 2fs steps
+useFlexibleCell       no                                          ;# Allows dimensions of cell to fluctuate
+                                                                  ;# no for water box, yes for membrane
+useConstantArea       no                                          ;# x-y fixed and z dim can vary
+                                                                  ;# no for water box, yes for membrane
+if {1} {
+LangevinPiston        on                                          ;# Use Nose-Hoover Langeving Piston Algorithm
+LangevinPistonTarget  1.01325                                     ;# Target pressure to run simu at (bars)
+LangevinPistonPeriod  200                                         ;# Oscillation period
+LangevinPistonDecay   100                                         ;# Damping time scale
+LangevinPistonTemp    $temp                                       ;# Should be set equal to the target temperature
+SurfaceTensionTarget  0.0                                         ;# Apply suface tension in xy plane (dyn/cm)
+}
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   Fix hydrogens                                                  #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+if {1} {
+rigidBonds            all                                         ;# Fix h-bonds to none, water, or all h-atoms
+rigidTolerance        1.0e-8                                      ;# Allowable bond-length error for ShakeH 
+rigidIterations	      100                                         ;# Maximum ShakeH iterations
+rigidDieOnError       on                                          ;# Exit and report an error
+useSettle             off                                         ;# Keep waters rigid
+}
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   Harmonic constraints                                           #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+if {0} {
+constraints           on                                          ;# Turn on the use of contraints
+consexp               2                                           ;# Exponent to be use in harmonic constraint energy
+consref               ${dir}/cons/                                ;# A pdb file to use for reference positions
+conskfile             ${dir}/cons/                                ;# A pdb file to use for k values
+conskcol              B                                           ;# Column of pdb file to use for harmonic constraint
+}
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   Fixed atoms constraint                                         #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+if {0} {
+fixedAtoms            on                                          ;# Turn on the use of contraints
+fixedAtomsForces      off                                         ;# Calculate forces between fixed atoms
+fixedAtomsFile        ${dir}/coor/                                ;# A pdb file to use for reference positions
+fixedAtomsCol         O                                           ;# Set O to read occupancy column in pdb file       
+}
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   Minimization parameters                                        #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+if {0} {
+minimization          on                                          ;# Perform conjugate gradient energy minimization
+minTinyStep           1.0e-8                                      ;# First initial step for line minimizer
+minBabyStep           1.0e-2                                      ;# Max initial step for line minimizer
+minLineGoal           1.0e-4                                      ;# Gradient reduction factor for line minimizer
+}
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   Extra parameters                                               #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+# Put here any custom parameters that are specific to this job
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   Execution script                                               #
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#----------------------------#
+#minimize               5000                                       ;# Minimization step
+#----------------------------#
+#----------------------------#
+run                    25000000                                     ;# Dynamics step
+#----------------------------#
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+#   End of script
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+
