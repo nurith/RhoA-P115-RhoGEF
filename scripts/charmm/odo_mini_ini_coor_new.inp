@@ -1,0 +1,148 @@
+* File: cdcwtgtp_water_mini_ini_coor.inp
+* Minimize initial coordinates
+*
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! set directory
+set DIR "/home/nurith/RasCDC42/"
+set TYPE "/home/nurith/RasCDC42/P115-rhogef-GTP-2"
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+set ncwt 14  ! crystal water
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+bomlev 0
+! read topology
+open read card unit 10 name "parameters/top_all36_toppar20_hbj.inp"
+read rtf card unit 10
+close unit 10
+
+! read parameters
+open read card unit 10 name "parameters/par_all36_toppar20_hbj.inp"
+read param flex card unit 10
+close unit 10
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Get P115 coordinates
+read sequence card
+* The sequence is WT P115-Rhogef
+*
+375
+GLN THR SER PRO PRO GLY TRP ARG GLU LEU VAL PRO PRO          
+ASP THR LEU HSD SER LEU PRO LYS SER GLN VAL LYS ARG          
+GLN GLU VAL ILE SER GLU LEU LEU VAL THR GLU ALA ALA          
+HSD VAL ARG MET LEU ARG VAL LEU HSD ASP LEU PHE PHE          
+GLN PRO MET ALA GLU CYS LEU PHE PHE PRO LEU GLU GLU          
+LEU GLN ASN ILE PHE PRO SER LEU ASP GLU LEU ILE GLU          
+VAL HSD SER LEU PHE LEU ASP ARG LEU MET LYS ARG ARG          
+GLN GLU SER GLY TYR LEU ILE GLU GLU ILE GLY ASP VAL          
+LEU LEU ALA ARG PHE ASP GLY ALA GLU GLY SER TRP PHE          
+GLN LYS ILE SER SER ARG PHE CYS SER ARG GLN SER PHE          
+ALA LEU GLU GLN LEU LYS ALA LYS GLN ARG LYS ASP PRO          
+ARG PHE CYS ALA PHE VAL GLN GLU ALA GLU SER ARG PRO          
+ARG CYS ARG ARG LEU GLN LEU LYS ASP MET ILE PRO THR          
+GLU MET GLN ARG LEU THR LYS TYR PRO LEU LEU LEU GLN          
+SER ILE GLY GLN ASN THR GLU GLU PRO THR GLU ARG GLU          
+LYS VAL GLU LEU ALA ALA GLU CYS CYS ARG GLU ILE LEU          
+HSD HSD VAL ASN GLN ALA VAL ARG ASP MET GLU ASP LEU          
+LEU ARG LEU LYS ASP TYR GLN ARG ARG LEU ASP LEU SER          
+HSD LEU ARG GLN SER SER ASP PRO MET LEU SER GLU PHE          
+LYS ASN LEU ASP ILE THR LYS LYS LYS LEU VAL HSD GLU          
+GLY PRO LEU THR TRP ARG VAL THR LYS ASP LYS ALA VAL          
+GLU VAL HSD VAL LEU LEU LEU ASP ASP LEU LEU LEU LEU          
+LEU GLN ARG GLN ASP GLU ARG LEU LEU LEU LYS SER HSD          
+SER ARG THR LEU THR PRO THR PRO ASP GLY LYS THR MET          
+LEU ARG PRO VAL LEU ARG LEU THR SER ALA MET THR ARG          
+GLU VAL ALA THR ASP HSD LYS ALA PHE TYR VAL LEU PHE          
+THR TRP ASP GLN GLU ALA GLN ILE TYR GLU LEU VAL ALA          
+GLN THR VAL SER GLU ARG LYS ASN TRP CYS ALA LEU ILE          
+THR GLU THR ALA GLY SER LEU LYS VAL PRO ALA    
+
+generate P115 first NTER last CTER setup
+
+read sequence card
+* The sequence is RhoA
+*
+! Get rho seq
+178
+ALA ILE ARG LYS LYS LEU VAL ILE VAL GLY ASP GLY ALA
+CYS GLY LYS THR CYS LEU LEU ILE VAL ASN SER LYS ASP
+GLN PHE PRO GLU VAL TYR VAL PRO THR VAL PHE GLU ASN
+TYR VAL ALA ASP ILE GLU VAL ASP GLY LYS GLN VAL GLU
+LEU ALA LEU TRP ASP THR ALA GLY GLN GLU ASP TYR ASP
+ARG LEU ARG PRO LEU SER TYR PRO ASP THR ASP VAL ILE
+LEU MET CYS PHE SER ILE ASP SER PRO ASP SER LEU GLU
+ASN ILE PRO GLU LYS TRP THR PRO GLU VAL LYS HSD PHE
+CYS PRO ASN VAL PRO ILE ILE LEU VAL GLY ASN LYS LYS
+ASP LEU ARG ASN ASP GLU HSD THR ARG ARG GLU LEU ALA
+LYS MET LYS GLN GLU PRO VAL LYS PRO GLU GLU GLY ARG
+ASP MET ALA ASN ARG ILE GLY ALA PHE GLY TYR MET GLU
+CYS SER ALA LYS THR LYS ASP GLY VAL ARG GLU VAL PHE
+GLU MET ALA THR ARG ALA ALA LEU GLN
+
+generate RHOA first NTER last CTER setup
+
+! Get Mg2+ in crystal structure
+read sequence MG 1
+generate MAGN noangle nodihedral
+
+
+! Get GTP in crystal structure
+read sequence GTP 1
+generate GTP setup first none last none
+
+! Get crystal water
+read sequence TIP3 @ncwt
+generate BLK0 nodihedrals noangles first none last none
+
+ic para
+
+open read card unit 1 name "coor/temp_ini_coor.crd"
+read coor card unit 1
+close unit 1
+
+ic fill preserve
+ic build
+hbuild
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Translate protein to the center
+coor stat sele all end
+coor trans xdir -?XAVE ydir -?YAVE zdir -?ZAVE sele all end
+
+! Minimization - side chains
+define BACKBONE select type N .or. type CA .or. type C .or. type O end
+cons fix sele BACKBONE end
+mini sd nstep 200
+mini sd nstep 200
+mini sd nstep 200
+mini sd nstep 200
+mini abnr nstep 100
+mini abnr nstep 100
+mini abnr nstep 100
+mini abnr nstep 100
+
+! Translate protein to the center
+coor stat sele all end
+coor trans xdir -?XAVE ydir -?YAVE zdir -?ZAVE sele all end
+coor stat sele all end
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Get the final coordinate
+open unit 1 write form name "coor/rhowtgtp_ini_config.crd"
+write coor card unit 1
+* crd file of protein
+*
+close unit 1
+
+! Get the final coordinate
+open unit 1 write form name "coor/rhowtgtp_ini_config.pdb"
+write coor pdb unit 1
+* pdb file of protein
+*
+close unit 1
+!!!!!!!!!!!!!
+
+stop
+

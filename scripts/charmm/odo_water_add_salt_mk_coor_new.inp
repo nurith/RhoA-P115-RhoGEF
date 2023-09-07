@@ -1,0 +1,328 @@
+* Generates the bulk overlay of water for the system
+* Use simplified method for water addition
+* File: file_name_add_salt_mk_coor.inp
+* Add salts to unit cell
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! set directory
+set DIR "/home/nurith/RasCDC42/"
+set TYPE "/home/nurith/RasCDC42/P115-rhogef-GDP-1"
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+set ncwt 14  ! crystal water
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! set numbers of salt (100mM)
+set nna 52             ! number of Na+
+set ncl 43             ! number of Cl-
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+bomlev -2
+
+! read topology
+open read card unit 10 name "parameters/top_all36_toppar20_hbj.inp"
+read rtf card unit 10
+close unit 10
+
+! read parameters
+open read card unit 10 name "parameters/par_all36_toppar20_hbj.inp"
+read param flex card unit 10
+close unit 10
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Get P115 coordinates
+read sequence card
+* The sequence is WT P115-Rhogef
+*
+375
+GLN THR SER PRO PRO GLY TRP ARG GLU LEU VAL PRO PRO          
+ASP THR LEU HSD SER LEU PRO LYS SER GLN VAL LYS ARG          
+GLN GLU VAL ILE SER GLU LEU LEU VAL THR GLU ALA ALA          
+HSD VAL ARG MET LEU ARG VAL LEU HSD ASP LEU PHE PHE          
+GLN PRO MET ALA GLU CYS LEU PHE PHE PRO LEU GLU GLU          
+LEU GLN ASN ILE PHE PRO SER LEU ASP GLU LEU ILE GLU          
+VAL HSD SER LEU PHE LEU ASP ARG LEU MET LYS ARG ARG          
+GLN GLU SER GLY TYR LEU ILE GLU GLU ILE GLY ASP VAL          
+LEU LEU ALA ARG PHE ASP GLY ALA GLU GLY SER TRP PHE          
+GLN LYS ILE SER SER ARG PHE CYS SER ARG GLN SER PHE          
+ALA LEU GLU GLN LEU LYS ALA LYS GLN ARG LYS ASP PRO          
+ARG PHE CYS ALA PHE VAL GLN GLU ALA GLU SER ARG PRO          
+ARG CYS ARG ARG LEU GLN LEU LYS ASP MET ILE PRO THR          
+GLU MET GLN ARG LEU THR LYS TYR PRO LEU LEU LEU GLN          
+SER ILE GLY GLN ASN THR GLU GLU PRO THR GLU ARG GLU          
+LYS VAL GLU LEU ALA ALA GLU CYS CYS ARG GLU ILE LEU          
+HSD HSD VAL ASN GLN ALA VAL ARG ASP MET GLU ASP LEU          
+LEU ARG LEU LYS ASP TYR GLN ARG ARG LEU ASP LEU SER          
+HSD LEU ARG GLN SER SER ASP PRO MET LEU SER GLU PHE          
+LYS ASN LEU ASP ILE THR LYS LYS LYS LEU VAL HSD GLU          
+GLY PRO LEU THR TRP ARG VAL THR LYS ASP LYS ALA VAL          
+GLU VAL HSD VAL LEU LEU LEU ASP ASP LEU LEU LEU LEU          
+LEU GLN ARG GLN ASP GLU ARG LEU LEU LEU LYS SER HSD          
+SER ARG THR LEU THR PRO THR PRO ASP GLY LYS THR MET          
+LEU ARG PRO VAL LEU ARG LEU THR SER ALA MET THR ARG          
+GLU VAL ALA THR ASP HSD LYS ALA PHE TYR VAL LEU PHE          
+THR TRP ASP GLN GLU ALA GLN ILE TYR GLU LEU VAL ALA          
+GLN THR VAL SER GLU ARG LYS ASN TRP CYS ALA LEU ILE          
+THR GLU THR ALA GLY SER LEU LYS VAL PRO ALA    
+
+generate P115 first NTER last CTER setup
+
+read sequence card
+* The sequence is RhoA
+*
+! Get rho seq
+178
+ALA ILE ARG LYS LYS LEU VAL ILE VAL GLY ASP GLY ALA
+CYS GLY LYS THR CYS LEU LEU ILE VAL ASN SER LYS ASP
+GLN PHE PRO GLU VAL TYR VAL PRO THR VAL PHE GLU ASN
+TYR VAL ALA ASP ILE GLU VAL ASP GLY LYS GLN VAL GLU
+LEU ALA LEU TRP ASP THR ALA GLY GLN GLU ASP TYR ASP
+ARG LEU ARG PRO LEU SER TYR PRO ASP THR ASP VAL ILE
+LEU MET CYS PHE SER ILE ASP SER PRO ASP SER LEU GLU
+ASN ILE PRO GLU LYS TRP THR PRO GLU VAL LYS HSD PHE
+CYS PRO ASN VAL PRO ILE ILE LEU VAL GLY ASN LYS LYS
+ASP LEU ARG ASN ASP GLU HSD THR ARG ARG GLU LEU ALA
+LYS MET LYS GLN GLU PRO VAL LYS PRO GLU GLU GLY ARG
+ASP MET ALA ASN ARG ILE GLY ALA PHE GLY TYR MET GLU
+CYS SER ALA LYS THR LYS ASP GLY VAL ARG GLU VAL PHE
+GLU MET ALA THR ARG ALA ALA LEU GLN
+
+generate RHOA first NTER last CTER setup
+
+! Get Mg2+ in crystal structure
+read sequence MG 1
+generate MAGN noangle nodihedral
+
+
+! Get GDP in crystal structure
+read sequence GDP 1
+generate GDP setup first none last none
+
+! Get crystal water
+read sequence TIP3 @ncwt
+generate BLK0 nodihedrals noangles first none last none
+
+
+open read card unit 1 name "coor/odo_water_overlay_system_rho.crd"
+read coor card unit 1
+close unit 1
+
+set N ?nres
+
+open read card unit 1 name "coor/odo_water_overlay_system_bulk_1.crd" 
+read sequence coor unit 1
+generate BLK1 nodihedrals noangles first none last none
+close unit 1
+open read card unit 1 name "coor/odo_water_overlay_system_bulk_1.crd"
+read coor card unit 1 offset @N
+close unit 1
+
+set N ?nres
+
+open read card unit 1 name "coor/odo_water_overlay_system_bulk_2.crd" 
+read sequence coor unit 1
+generate BLK2 nodihedrals noangles first none last none
+close unit 1
+open read card unit 1 name "coor/odo_water_overlay_system_bulk_2.crd"
+read coor card unit 1 offset @N
+close unit 1
+
+set N ?nres
+
+open read card unit 1 name "coor/odo_water_overlay_system_bulk_3.crd"
+read sequence coor unit 1
+generate BLK3 nodihedrals noangles first none last none
+close unit 1
+open read card unit 1 name "coor/odo_water_overlay_system_bulk_3.crd"
+read coor card unit 1 offset @N
+close unit 1
+
+set N ?nres
+
+open read card unit 1 name "coor/odo_water_overlay_system_bulk_4.crd"
+read sequence coor unit 1
+generate BLK4 nodihedrals noangles first none last none
+close unit 1
+open read card unit 1 name "coor/odo_water_overlay_system_bulk_4.crd"
+read coor card unit 1 offset @N
+close unit 1
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Stat for protein 
+coor stat sele segid P115 end
+coor stat sele segid P115 .and. type CA end
+coor stat sele segid RHOA end
+coor stat sele segid RHOA .and. type CA end
+coor stat sele segid MAGN end
+coor stat sele segid GTP end 
+! Replace by GDP if needed
+
+! Stat for water
+coor stat sele resname TIP3 .and. type OH2 end
+coor stat sele resname TIP3 .and. type OH2 .and. segid BLK0 end
+coor stat sele resname TIP3 .and. type OH2 .and. segid BLK1 end
+coor stat sele resname TIP3 .and. type OH2 .and. segid BLK2 end
+coor stat sele resname TIP3 .and. type OH2 .and. segid BLK3 end
+coor stat sele resname TIP3 .and. type OH2 .and. segid BLK4 end
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Write protein coordinates
+define JANG sele segid P115 .or. segid RHOA .or. segid GDP .or. segid MAGN .or. segid BLK0 end
+
+open write card unit 1 name "coor/odo_water_add_salt_system.crd"
+write coor sele JANG end card unit 1
+open write card unit 1 name "coor/odo_water_add_salt_system.pdb"
+write coor sele JANG end pdb unit 1
+* full system for protein
+*
+
+dele atom sele JANG end
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Stat waters
+
+coor stat sele resn TIP3 .and. type OH2  end
+
+coor stat sele segid BLK1 .and. type OH2 end
+set nt1 ?nsel
+coor stat sele segid BLK2 .and. type OH2 end
+set nt2 ?nsel
+coor stat sele segid BLK3 .and. type OH2 end
+set nt3 ?nsel
+coor stat sele segid BLK4 .and. type OH2 end
+set nt4 ?nsel
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Randomly choose waters for replacing salts
+
+! random number generation 
+RAND UNIF ISEED 318098
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Na+ selection, nsod = total # of Na
+
+set nsod @nna
+
+label loop_sod1
+
+     set r ?RAND
+     if r gt 0.0   set NAME BLK1
+     if r gt 0.25  set NAME BLK2
+     if r gt 0.50  set NAME BLK3
+     if r gt 0.75  set NAME BLK4
+
+     set n ?RAND
+     if @NAME eq BLK1  mult n by @nt1
+     if @NAME eq BLK2  mult n by @nt2
+     if @NAME eq BLK3  mult n by @nt3
+     if @NAME eq BLK4  mult n by @nt4
+     if n lt 10000  trim n to 4
+     if n lt 1000  trim n to 3
+     if n lt 100  trim n to 2
+     if n lt 10  trim n to 1
+     if n eq 0  set n 1
+!    salt selection
+     print coor sele segid @NAME .and. resid @n .and. type OH2 end
+     if ?nsel eq 0 goto loop_sod1
+!    no salts around 4A each other
+     define temp sele (type CLA .or. type SOD .or. type MG) .and. (segid @NAME .and. resid @n .and. type OH2) .around. 4.0 end
+     if ?nsel gt 0 goto loop_sod1
+!    replace water to salt
+     dele atom sele segid @NAME .and. type H* .and. resi @n end
+     rena atom SOD sele segid @NAME .and. type OH2 .and. resi @n end
+     coor stat sele type SOD end
+
+if ?nsel lt @nsod goto loop_sod1
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Cl- selection, ncla = total # of Cl
+
+set ncla @ncl
+
+label loop_cla1
+
+     set r ?RAND
+     if r gt 0.0   set NAME BLK1
+     if r gt 0.25  set NAME BLK2
+     if r gt 0.50  set NAME BLK3
+     if r gt 0.75  set NAME BLK4
+
+     set n ?RAND
+     if @NAME eq BLK1  mult n by @nt1
+     if @NAME eq BLK2  mult n by @nt2
+     if @NAME eq BLK3  mult n by @nt3
+     if @NAME eq BLK4  mult n by @nt4
+     if n lt 10000  trim n to 4
+     if n lt 1000  trim n to 3
+     if n lt 100  trim n to 2
+     if n lt 10  trim n to 1
+     if n eq 0  set n 1
+!    salt selection
+     print coor sele segid @NAME .and. resid @n .and. type OH2 end
+     if ?nsel eq 0 goto loop_cla1
+!    no salts around 4A each other
+     define temp sele (type CLA .or. type SOD .or. type MG) .and. (segid @NAME .and. resid @n .and. type OH2) .around. 4.0 end
+     if ?nsel gt 0 goto loop_cla1
+!    replace water to salt
+     dele atom sele segid @NAME .and. type H* .and. resi @n end
+     rena atom CLA sele segid @NAME .and. type OH2 .and. resi @n end
+!     rena atom CLA sele segid CHLO .and. type CLA .and. resi @n end
+     coor stat sele type CLA end
+
+if ?nsel lt @ncla goto loop_cla1
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Write salt coordinates
+
+open write card unit 1 name "coor/temp_sod.crd"
+write coor card unit 1 sele type SOD end
+* temp salt coordinates
+*
+
+dele atoms sele type SOD end
+
+open write card unit 1 name "coor/temp_cla.crd"
+write coor card unit 1 sele type CLA end
+* temp salt coordinates
+*
+
+dele atoms sele type CLA end
+
+!!!!!!!!!!!!!!!!!!
+
+! Write water coordinates
+
+open write card unit 1 name "coor/temp_blk1.crd"
+write coor sele segid BLK1 end card unit 1
+* water coor
+*
+
+dele atom sele segid BLK1 end
+
+open write card unit 1 name "coor/temp_blk2.crd"
+write coor sele segid BLK2 end card unit 1
+* water coor
+*
+
+dele atom sele segid BLK2 end
+
+open write card unit 1 name "coor/temp_blk3.crd"
+write coor sele segid BLK3 end card unit 1
+* water coor
+*
+
+dele atom sele segid BLK3 end
+
+open write card unit 1 name "coor/temp_blk4.crd"
+write coor sele segid BLK4 end card unit 1
+* water coor
+*
+
+stop
+
